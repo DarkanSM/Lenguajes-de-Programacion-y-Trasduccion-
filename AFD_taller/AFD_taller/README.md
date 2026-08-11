@@ -1,6 +1,6 @@
 # AFD - Simulador de Autómatas Finitos Deterministas
 
-Trabajo de la materia de Compiladores/Autómatas: implementación en Python de un
+Trabajo de Compiladores/Autómatas: implementación en Python de un
 simulador genérico de AFD (Autómata Finito Determinista), configurable por
 archivo de texto.
 
@@ -73,5 +73,5 @@ junto con el motivo del rechazo cuando aplica (símbolo fuera del alfabeto,
 transición no definida, o estado final no alcanzado).
 
 ## Autores
-
+Samuel Merchan - Diego Moreno
 Trabajo en grupo — Actividad "Implementar AFD en Python".
