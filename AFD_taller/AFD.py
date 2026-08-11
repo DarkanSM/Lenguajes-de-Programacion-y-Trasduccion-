@@ -15,214 +15,182 @@ class AFD:
         self.transiciones = transiciones
 
     @classmethod
-    def desde_archivo(cls, ruta_conf):
-        if not os.path.isfile(ruta_conf):
-            raise ErrorConfiguracionAFD(
-                f"No se encontró el archivo de configuración: {ruta_conf}"
-            )
+    def desde_archivo(cls, ruta):
+        if not os.path.isfile(ruta):
+            raise ErrorConfiguracionAFD(f"no encontre el archivo {ruta}")
 
         estados = None
         alfabeto = None
         inicial = None
         finales = None
-        transiciones = {}
-        leyendo_transiciones = False
+        trans = {}
+        leyendo = False
 
-        with open(ruta_conf, "r", encoding="utf-8") as f:
-            for num_linea, linea_original in enumerate(f, start=1):
-                linea = linea_original.strip()
+        f = open(ruta, "r", encoding="utf-8")
+        n = 0
+        for raw in f:
+            n += 1
+            l = raw.strip()
 
-                if not linea or linea.startswith("#"):
+            if not l or l[0] == "#":
+                continue
+
+            if leyendo:
+                etq = l.split(":")[0].strip().upper()
+                if ":" in l and etq in ("ESTADOS", "ALFABETO", "INICIAL", "FINALES", "TRANSICIONES"):
+                    leyendo = False
+                else:
+                    p = [x.strip() for x in l.split(",")]
+                    if len(p) != 3:
+                        raise ErrorConfiguracionAFD(f"linea {n}: transicion mal escrita -> '{l}'")
+                    o, s, d = p
+                    trans[(o, s)] = d
                     continue
 
-                if leyendo_transiciones:
-                    if ":" in linea and linea.split(":")[0].strip().upper() in (
-                        "ESTADOS", "ALFABETO", "INICIAL", "FINALES", "TRANSICIONES"
-                    ):
-                        leyendo_transiciones = False
-                    else:
-                        partes = [p.strip() for p in linea.split(",")]
-                        if len(partes) != 3:
-                            raise ErrorConfiguracionAFD(
-                                f"Línea {num_linea}: transición inválida '{linea}'. "
-                                "Formato esperado: estado_origen,simbolo,estado_destino"
-                            )
-                        origen, simbolo, destino = partes
-                        transiciones[(origen, simbolo)] = destino
-                        continue
+            if ":" not in l:
+                raise ErrorConfiguracionAFD(f"linea {n}: no entiendo esto -> '{l}'")
 
-                if ":" not in linea:
-                    raise ErrorConfiguracionAFD(
-                        f"Línea {num_linea}: no se reconoce '{linea}'"
-                    )
+            etq, _, val = l.partition(":")
+            etq = etq.strip().upper()
+            val = val.strip()
 
-                etiqueta, _, valor = linea.partition(":")
-                etiqueta = etiqueta.strip().upper()
-                valor = valor.strip()
+            if etq == "ESTADOS":
+                estados = [x.strip() for x in val.split(",") if x.strip()]
+            elif etq == "ALFABETO":
+                alfabeto = [x.strip() for x in val.split(",") if x.strip()]
+            elif etq == "INICIAL":
+                inicial = val
+            elif etq == "FINALES":
+                finales = [x.strip() for x in val.split(",") if x.strip()]
+            elif etq == "TRANSICIONES":
+                leyendo = True
+            else:
+                raise ErrorConfiguracionAFD(f"linea {n}: etiqueta rara '{etq}'")
 
-                if etiqueta == "ESTADOS":
-                    estados = [s.strip() for s in valor.split(",") if s.strip()]
-                elif etiqueta == "ALFABETO":
-                    alfabeto = [s.strip() for s in valor.split(",") if s.strip()]
-                elif etiqueta == "INICIAL":
-                    inicial = valor
-                elif etiqueta == "FINALES":
-                    finales = [s.strip() for s in valor.split(",") if s.strip()]
-                elif etiqueta == "TRANSICIONES":
-                    leyendo_transiciones = True
-                else:
-                    raise ErrorConfiguracionAFD(
-                        f"Línea {num_linea}: etiqueta desconocida '{etiqueta}'"
-                    )
+        f.close()
 
         if estados is None:
-            raise ErrorConfiguracionAFD("Falta la sección ESTADOS en conf.txt")
+            raise ErrorConfiguracionAFD("falta ESTADOS en el archivo de configuracion")
         if alfabeto is None:
-            raise ErrorConfiguracionAFD("Falta la sección ALFABETO en conf.txt")
+            raise ErrorConfiguracionAFD("falta ALFABETO en el archivo de configuracion")
         if inicial is None:
-            raise ErrorConfiguracionAFD("Falta la sección INICIAL en conf.txt")
+            raise ErrorConfiguracionAFD("falta INICIAL en el archivo de configuracion")
         if finales is None:
-            raise ErrorConfiguracionAFD("Falta la sección FINALES en conf.txt")
+            raise ErrorConfiguracionAFD("falta FINALES en el archivo de configuracion")
+
         if inicial not in estados:
-            raise ErrorConfiguracionAFD(
-                f"El estado inicial '{inicial}' no está en ESTADOS"
-            )
+            raise ErrorConfiguracionAFD(f"el inicial '{inicial}' no esta en ESTADOS")
+
         for qf in finales:
             if qf not in estados:
-                raise ErrorConfiguracionAFD(
-                    f"El estado final '{qf}' no está en ESTADOS"
-                )
-        for (origen, simbolo), destino in transiciones.items():
-            if origen not in estados:
-                raise ErrorConfiguracionAFD(
-                    f"Transición inválida: el estado '{origen}' no está en ESTADOS"
-                )
-            if destino not in estados:
-                raise ErrorConfiguracionAFD(
-                    f"Transición inválida: el estado '{destino}' no está en ESTADOS"
-                )
-            if simbolo not in alfabeto:
-                raise ErrorConfiguracionAFD(
-                    f"Transición inválida: el símbolo '{simbolo}' no está en ALFABETO"
-                )
+                raise ErrorConfiguracionAFD(f"el final '{qf}' no esta en ESTADOS")
 
-        return cls(estados, alfabeto, inicial, set(finales), transiciones)
+        for k in trans:
+            o, s = k
+            d = trans[k]
+            if o not in estados or d not in estados:
+                raise ErrorConfiguracionAFD(f"hay una transicion con un estado que no existe ({o} -> {d})")
+            if s not in alfabeto:
+                raise ErrorConfiguracionAFD(f"el simbolo '{s}' de una transicion no esta en ALFABETO")
+
+        return cls(estados, alfabeto, inicial, set(finales), trans)
 
     def mover(self, estado, simbolo):
         return self.transiciones.get((estado, simbolo))
 
     def procesar_cadena(self, cadena):
-        estado_actual = self.inicial
-        pasos = []
-        resto = cadena
+        actual = self.inicial
+        pasos = [f"δ({actual}, {cadena if cadena else 'ε'})"]
 
-        pasos.append(f"δ({estado_actual}, {resto if resto else 'ε'})")
+        for i in range(len(cadena)):
+            s = cadena[i]
 
-        for i, simbolo in enumerate(cadena):
-            if simbolo not in self.alfabeto:
-                motivo = (
-                    f"el símbolo '{simbolo}' no pertenece al alfabeto "
-                    f"{{{', '.join(self.alfabeto)}}}"
-                )
+            if s not in self.alfabeto:
+                motivo = f"'{s}' no pertenece al alfabeto {{{', '.join(self.alfabeto)}}}"
                 return False, pasos, motivo
 
-            siguiente = self.mover(estado_actual, simbolo)
+            sig = self.mover(actual, s)
             resto = cadena[i + 1:]
 
-            if siguiente is None:
-                motivo = (
-                    f"no existe transición δ({estado_actual}, {simbolo}) "
-                    "(cadena muerta / estado trampa no definido)"
-                )
-                pasos.append(
-                    f"  --{simbolo}-->  [SIN TRANSICIÓN, cadena RECHAZADA]"
-                )
+            if sig is None:
+                pasos.append(f"  --{s}-->  [no hay transicion, se muere aqui]")
+                motivo = f"no existe δ({actual}, {s}), la cadena queda atrapada"
                 return False, pasos, motivo
 
-            pasos.append(
-                f"  --{simbolo}-->  δ({siguiente}, {resto if resto else 'ε'})"
-            )
-            estado_actual = siguiente
+            pasos.append(f"  --{s}-->  δ({sig}, {resto if resto else 'ε'})")
+            actual = sig
 
-        aceptada = estado_actual in self.finales
-        if not aceptada:
-            motivo = (
-                f"la cadena termina en el estado '{estado_actual}', "
-                f"que no es un estado final {sorted(self.finales)}"
-            )
+        if actual not in self.finales:
+            motivo = f"termino en '{actual}' y ese no es final {sorted(self.finales)}"
             return False, pasos, motivo
 
         return True, pasos, None
 
 
-def leer_cadenas(ruta_cadenas):
-    if not os.path.isfile(ruta_cadenas):
-        raise ErrorConfiguracionAFD(
-            f"No se encontró el archivo de cadenas: {ruta_cadenas}"
-        )
+def leer_cadenas(ruta):
+    if not os.path.isfile(ruta):
+        raise ErrorConfiguracionAFD(f"no encontre el archivo {ruta}")
+
     cadenas = []
-    with open(ruta_cadenas, "r", encoding="utf-8") as f:
-        for linea in f:
-            linea = linea.rstrip("\n").rstrip("\r")
-            if not linea.strip() or linea.strip().startswith("#"):
+    with open(ruta, "r", encoding="utf-8") as f:
+        for raw in f:
+            l = raw.strip()
+            if not l or l.startswith("#"):
                 continue
-            cadenas.append(linea.strip())
+            cadenas.append(l)
     return cadenas
 
 
-def imprimir_encabezado_afd(afd):
-    print("AUTÓMATA FINITO DETERMINISTA CARGADO")
-    print(f"Estados     : {{{', '.join(afd.estados)}}}")
-    print(f"Alfabeto    : {{{', '.join(afd.alfabeto)}}}")
-    print(f"Estado inicial : {afd.inicial}")
-    print(f"Estados finales: {{{', '.join(sorted(afd.finales))}}}")
-    print("Tabla de transiciones:")
-    for (origen, simbolo), destino in sorted(afd.transiciones.items()):
-        print(f"  δ({origen}, {simbolo}) = {destino}")
+def mostrar_info(afd):
+    print("AFD cargado")
+    print(f"Estados  : {{{', '.join(afd.estados)}}}")
+    print(f"Alfabeto : {{{', '.join(afd.alfabeto)}}}")
+    print(f"Inicial  : {afd.inicial}")
+    print(f"Finales  : {{{', '.join(sorted(afd.finales))}}}")
+    print("Transiciones:")
+    for k in sorted(afd.transiciones):
+        o, s = k
+        print(f"  δ({o}, {s}) = {afd.transiciones[k]}")
     print()
 
 
 def main():
     if len(sys.argv) != 3:
         print("Uso: python3 AFD.py <conf.txt> <cadenas.txt>")
-        print("Ejemplo: python3 AFD.py conf.txt cadenas.txt")
         sys.exit(1)
 
-    ruta_conf = sys.argv[1]
-    ruta_cadenas = sys.argv[2]
+    conf, cad = sys.argv[1], sys.argv[2]
 
     try:
-        afd = AFD.desde_archivo(ruta_conf)
-        cadenas = leer_cadenas(ruta_cadenas)
+        afd = AFD.desde_archivo(conf)
+        cadenas = leer_cadenas(cad)
     except ErrorConfiguracionAFD as e:
         print(f"ERROR: {e}")
         sys.exit(1)
 
-    imprimir_encabezado_afd(afd)
+    mostrar_info(afd)
 
     if not cadenas:
-        print("El archivo de cadenas está vacío. No hay nada que procesar.")
-        sys.exit(0)
+        print("no hay cadenas para procesar")
+        return
 
-    total = len(cadenas)
-    aceptadas = 0
+    ok = 0
+    for i, c in enumerate(cadenas, start=1):
+        print(f'Cadena {i}/{len(cadenas)}: "{c}"')
+        aceptada, pasos, motivo = afd.procesar_cadena(c)
 
-    for idx, cadena in enumerate(cadenas, start=1):
-        print(f"Cadena {idx}/{total}: \"{cadena}\"")
-        aceptada, pasos, motivo = afd.procesar_cadena(cadena)
-
-        print("Secuencia de movimientos:")
-        for paso in pasos:
-            print(f"  {paso}")
+        print("Pasos:")
+        for p in pasos:
+            print(f"  {p}")
 
         if aceptada:
-            aceptadas += 1
-            print(f'Resultado: ACEPTADA ✔  (la cadena "{cadena}" pertenece al lenguaje)')
+            ok += 1
+            print(f'Resultado: ACEPTADA ✔  ("{c}" pertenece al lenguaje)')
         else:
-            print(f'Resultado: RECHAZADA ✘  ({motivo})')
+            print(f"Resultado: RECHAZADA ✘  ({motivo})")
         print()
 
-    print(f"Resumen: {aceptadas}/{total} cadenas aceptadas")
+    print(f"Total: {ok}/{len(cadenas)} aceptadas")
 
 
 if __name__ == "__main__":
