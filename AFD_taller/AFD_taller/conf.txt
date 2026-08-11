@@ -1,0 +1,25 @@
+# Configuración del AFD para la expresión regular:  (a|b)*abb(a|b)*
+# Ejercicio 3.16 d) (pág. 149, libro de Aho/Sethi/Ullman)
+# Lenguaje: todas las cadenas de a's y b's que CONTIENEN la subcadena "abb"
+#
+# Este es el AFD ya minimizado/determinizado (resultado de aplicar el
+# algoritmo 3.2 -construcción de subconjuntos- al AFN del algoritmo 3.3).
+#
+# q0 = no se ha visto nada útil todavía
+# q1 = se acaba de ver una 'a' (posible inicio de "abb")
+# q2 = se ha visto "ab"
+# q3 = se ha visto "abb" -> ESTADO DE ACEPTACIÓN (y se queda ahí siempre)
+
+ESTADOS: q0,q1,q2,q3
+ALFABETO: a,b
+INICIAL: q0
+FINALES: q3
+TRANSICIONES:
+q0,a,q1
+q0,b,q0
+q1,a,q1
+q1,b,q2
+q2,a,q1
+q2,b,q3
+q3,a,q3
+q3,b,q3

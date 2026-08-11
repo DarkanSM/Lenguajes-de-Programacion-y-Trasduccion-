@@ -1,0 +1,8 @@
+# Cadena de prueba pedida en el ejercicio 3.16
+ababbab
+# Algunas cadenas adicionales para verificar el comportamiento del AFD
+abb
+aab
+bbb
+aabbb
+a

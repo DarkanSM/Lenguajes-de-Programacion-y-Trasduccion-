@@ -1,0 +1,28 @@
+# Ejercicio 3.16 d) VERSIÓN LITERAL tal como aparece impresa en el libro:
+#   (b|b)*abb(a|b)*
+# Como (b|b) = b, esto equivale a: b*abb(a|b)*
+# Lenguaje: cero o más b's, seguidas EXACTAMENTE de "abb", seguidas de
+# cualquier cosa. A diferencia del inciso d) "clásico" (a|b)*abb(a|b)*,
+# aquí "abb" debe aparecer pegado al principio (después de las b's
+# iniciales), no en cualquier posición de la cadena.
+#
+# Con esta versión, "ababbab" NO se acepta (falla justo al 3er símbolo).
+#
+# q0 = leyendo las b's iniciales (b*)
+# q1 = se acaba de leer la 'a' de "abb"
+# q2 = se ha leído "ab", falta la segunda 'b'
+# q3 = se ha leído "abb" -> aceptación, y de aquí en adelante todo vale
+# (no hay estado trampa explícito: si no hay transición, el simulador
+#  reporta la cadena como rechazada por "sin transición")
+
+ESTADOS: q0,q1,q2,q3
+ALFABETO: a,b
+INICIAL: q0
+FINALES: q3
+TRANSICIONES:
+q0,b,q0
+q0,a,q1
+q1,b,q2
+q2,b,q3
+q3,a,q3
+q3,b,q3

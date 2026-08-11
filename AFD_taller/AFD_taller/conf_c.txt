@@ -1,0 +1,12 @@
+# Ejercicio 3.16 c): ((epsilon|a)b*)*
+# Nota: cada repetición de (eps|a)b* puede producir por sí sola una 'a'
+# suelta (a seguida de cero b's) o una 'b' suelta (cero a's, b seguida de
+# cero b's adicionales). Al concatenar repeticiones se puede formar
+# CUALQUIER cadena de a's y b's -> mismo lenguaje que a) y b): (a|b)*
+ESTADOS: q0
+ALFABETO: a,b
+INICIAL: q0
+FINALES: q0
+TRANSICIONES:
+q0,a,q0
+q0,b,q0
