@@ -5,7 +5,6 @@ import os
 class ErrorConfiguracionAFD(Exception):
     pass
 
-
 class AFD:
     def __init__(self, estados, alfabeto, inicial, finales, transiciones):
         self.estados = estados
