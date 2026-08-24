@@ -1,0 +1,3 @@
+ventas mostrar
+graficar
+eliminar ventas

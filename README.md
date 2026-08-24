@@ -1,101 +1,50 @@
-# AFD - Simulador de Autómatas Finitos Deterministas
+# Lenguaje de instrucciones con ANTLR4
 
-Trabajo de Compiladores/Autómatas: implementación en Python de un
-simulador genérico de AFD (Autómata Finito Determinista), configurable por
-archivo de texto.
+Proyecto de la actividad práctica de la guía de ANTLR 4 (sección 16), asignatura
+Lenguajes de Programación. Reconoce instrucciones del tipo:
 
-Ejercicio base: **3.16 (pág. 149)**, libro *Compiladores: Principios, Técnicas
-y Herramientas* — Aho, Sethi, Ullman.
+```
+mostrar ventas
+cargar clientes
+graficar ingresos
+```
 
-## Contenido
+## Estructura del repositorio
 
-| Archivo | Descripción |
-|---|---|
-| `AFD.py` | Programa principal. Lee un AFD desde un archivo de configuración y prueba cadenas de entrada. |
-| `conf_a.txt` / `cadenas_a.txt` | AFD y cadenas de prueba para el literal a): `(a\|b)*` |
-| `conf_b.txt` / `cadenas_b.txt` | AFD y cadenas de prueba para el literal b): `(a*\|b*)*` |
-| `conf_c.txt` / `cadenas_c.txt` | AFD y cadenas de prueba para el literal c): `((ε\|a)b*)*` |
-| `conf_d.txt` / `cadenas_d.txt` | AFD y cadenas de prueba para el literal d): `(a\|b)*abb(a\|b)*` |
+```
+antlr-instrucciones/
+├── src/
+│   ├── Instrucciones.g4   # Gramática (lexer + parser combinados)
+│   └── Main.java          # Driver que imprime tokens y árbol sintáctico
+├── tests/
+│   ├── entrada_valida.txt     # 5 instrucciones válidas
+│   └── entrada_invalida.txt   # 3 casos que deben ser rechazados
+├── docs/
+│   ├── explicacion_reglas.md
+│   ├── preguntas_analisis.md
+│   └── conclusiones.md
+└── README.md
+```
 
-Cada literal tiene su propio par de archivos (configuración + cadenas), como
-se pidió en clase.
+## Cómo ejecutarlo
 
-## Uso
-
-Cada literal se ejecuta por separado, pasando su configuración y su archivo
-de cadenas correspondiente:
+Requiere Java y ANTLR4 instalados (ver guía de instalación por separado).
 
 ```bash
-python3 AFD.py conf_a.txt cadenas_a.txt
-python3 AFD.py conf_b.txt cadenas_b.txt
-python3 AFD.py conf_c.txt cadenas_c.txt
-python3 AFD.py conf_d.txt cadenas_d.txt
+cd src
+antlr4 -visitor Instrucciones.g4
+javac *.java
+java Main ../tests/entrada_valida.txt
+java Main ../tests/entrada_invalida.txt
 ```
 
-## Sobre los literales a), b) y c)
+## Documentación
 
-Los tres definen el mismo lenguaje: cualquier cadena formada por a's y b's.
-Por eso el AFD de los tres es el mismo autómata de un solo estado (acepta
-todo). Esto no es un error: es porque las tres expresiones regulares son
-equivalentes entre sí, aunque se vean distintas.
+- [`docs/explicacion_reglas.md`](docs/explicacion_reglas.md): explicación de cada regla léxica y sintáctica.
+- [`docs/preguntas_analisis.md`](docs/preguntas_analisis.md): respuestas a las preguntas de análisis de la guía.
+- [`docs/conclusiones.md`](docs/conclusiones.md): conclusiones, incluida la diferencia entre lexer y parser.
 
-## Sobre el literal d)
+## Referencias
 
-Se usó la expresión `(a|b)*abb(a|b)*`: el lenguaje de todas las cadenas que
-contienen la subcadena "abb" en cualquier posición. Es el ejemplo trabajado
-en el capítulo 3 del libro, justo antes del ejercicio.
-
-## Formato de los archivos `conf_x.txt`
-
-```
-ESTADOS: q0,q1,q2,q3
-ALFABETO: a,b
-INICIAL: q0
-FINALES: q3
-TRANSICIONES:
-q0,a,q1
-q0,b,q0
-q1,a,q1
-q1,b,q2
-q2,a,q1
-q2,b,q3
-q3,a,q3
-q3,b,q3
-```
-
-Cada línea de `TRANSICIONES` tiene el formato: `estado_origen,simbolo,estado_destino`.
-
-## Formato de los archivos `cadenas_x.txt`
-
-Una cadena de prueba por línea:
-
-```
-ababbab
-abb
-aab
-```
-
-## Salida del programa
-
-Para cada cadena se muestra la secuencia completa de movimientos
-δ(estado, resto_de_entrada) y si la cadena es **ACEPTADA** o **RECHAZADA**,
-con el motivo del rechazo cuando aplica.
-
-## Cómo ver el contenido de un archivo en la terminal
-
-Para mostrar el contenido de cualquier archivo sin abrir un editor, usar:
-
-```bash
-cat cadenas_d.txt
-```
-
-Para editar un archivo (agregar o quitar cadenas de prueba) sí se puede usar
-`nano`:
-
-```bash
-nano cadenas_d.txt
-```
-
-## Autores
-Samuel Merchan, Diego Moreno
-— Actividad "Implementar AFD en Python".
+- Parr, T. (2013). *The Definitive ANTLR 4 Reference*. Pragmatic Bookshelf.
+- Documentación oficial de ANTLR4: https://www.antlr.org
