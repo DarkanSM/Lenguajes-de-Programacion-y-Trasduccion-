@@ -141,37 +141,39 @@ line 1:0 mismatched input 'eliminar' expecting {'mostrar', 'cargar', 'graficar'}
 
 El lexer y el parser cumplen roles distintos y complementarios dentro del proceso de análisis de un lenguaje. El lexer trabaja a nivel de caracteres: agrupa el texto crudo en unidades con significado (tokens) como palabras clave e identificadores, y descarta lo que no aporta estructura, como los espacios en blanco. El parser, en cambio, trabaja a nivel de tokens: verifica que la secuencia generada por el lexer cumpla con el orden y la estructura definidos por las reglas sintácticas de la gramática, y construye el árbol sintáctico que representa esa estructura. En otras palabras, el lexer responde "¿qué es cada pedazo de texto?" mientras que el parser responde "¿estos pedazos están organizados correctamente?". Esta separación permite que ambas etapas se diseñen y depuren de forma independiente, y es la base sobre la que se construyen compiladores e intérpretes.
 
+
 ## Preguntas de análisis
 
-**1. ¿Cuál es la diferencia entre un lexema y un token?**
-Un lexema es la secuencia de caracteres tal como aparece en el texto de entrada (por ejemplo, la palabra `mostrar`). Un token es la representación abstracta que el lexer le asigna a ese lexema, indicando a qué categoría pertenece (por ejemplo, `MOSTRAR`). Un mismo token puede corresponder a distintos lexemas (como `ID` puede ser `ventas`, `clientes`, etc.).
 
-**2. ¿Cuál es la responsabilidad del lexer?**
-Convertir la secuencia de caracteres del archivo de entrada en una secuencia de tokens, agrupando caracteres relacionados y descartando los que no son relevantes para el análisis (como espacios en blanco).
+1. ¿Cuál es la diferencia entre un lexema y un token?
+El lexema es el texto crudo que aparece en el archivo, sin ningún tipo de interpretación: por ejemplo, la palabra mostrar tal cual fue escrita. El token es el resultado de clasificar ese lexema dentro de una categoría reconocida por la gramática, en este caso MOSTRAR. Varios lexemas distintos pueden mapear al mismo tipo de token, como ocurre con ID, que agrupa cualquier palabra como ventas, productos o reportes.
 
-**3. ¿Cuál es la responsabilidad del parser?**
-Recibir la secuencia de tokens generada por el lexer y verificar que cumpla con la estructura definida por las reglas sintácticas de la gramática, construyendo un árbol sintáctico que representa esa estructura.
+2. ¿Cuál es la responsabilidad del lexer?
+Recorrer el texto de entrada carácter por carácter y agruparlo en tokens según las reglas léxicas definidas, dejando fuera del flujo hacia el parser cualquier elemento que no aporte información estructural, como los espacios en blanco o los saltos de línea.
 
-**4. ¿Por qué las reglas léxicas comienzan con mayúscula en ANTLR?**
-Es una convención de ANTLR que permite diferenciar automáticamente las reglas léxicas (tokens) de las reglas sintácticas dentro del mismo archivo de gramática.
+3. ¿Cuál es la responsabilidad del parser?
+Tomar la secuencia de tokens que entrega el lexer y comprobar si el orden en que aparecen respeta las reglas sintácticas de la gramática. Si la secuencia es válida, arma con ella un árbol sintáctico; si no lo es, reporta el punto exacto donde la estructura falla.
 
-**5. ¿Por qué las reglas sintácticas comienzan con minúscula?**
-Por la misma convención: al iniciar con minúscula, ANTLR las identifica como reglas del parser, que combinan tokens para formar estructuras más complejas.
+4. ¿Por qué las reglas léxicas comienzan con mayúscula en ANTLR?
+Porque ANTLR usa esa mayúscula inicial como marca sintáctica para saber, sin ambigüedad, que se trata de una regla del lexer y no del parser, sin necesidad de escribir una palabra clave adicional que lo indique.
 
-**6. ¿Cuál es la función de `->skip`?**
-Le indica al lexer que, aunque reconoció un patrón (como espacios o saltos de línea), no debe generar un token para él ni enviarlo al parser; simplemente lo descarta.
+5. ¿Por qué las reglas sintácticas comienzan con minúscula?
+Es la contraparte de la convención anterior: al empezar en minúscula, ANTLR sabe que esa regla pertenece al parser y describe cómo se combinan los tokens (y otras reglas) para formar estructuras del lenguaje.
 
-**7. ¿Qué representa EOF?**
-Representa el final del archivo de entrada (End Of File). Se usa en las reglas sintácticas para asegurar que toda la entrada fue consumida y reconocida correctamente, evitando que sobre texto sin procesar.
+6. ¿Cuál es la función de ->skip?
+Le dice al lexer que, aunque el texto coincide con esa regla, el token generado no debe pasar al parser. Es útil para partes de la entrada que hay que reconocer pero que no tienen valor estructural, como los espacios.
 
-**8. ¿Qué información representa un árbol sintáctico?**
-Representa la estructura jerárquica de la entrada según las reglas de la gramática: los nodos internos corresponden a reglas sintácticas aplicadas, y las hojas corresponden a los tokens reconocidos por el lexer.
+7. ¿Qué representa EOF?
+Es el marcador de fin de archivo. Colocarlo al final de la regla inicial obliga a que el parser consuma toda la entrada para dar por válido el reconocimiento, en lugar de aceptar solo un fragmento inicial y quedarse callado sobre el resto.
 
-**9. ¿Cuál es la diferencia entre Listener y Visitor?**
-El Listener permite que ANTLR recorra automáticamente el árbol y dispare eventos (`enterX`/`exitX`) en cada nodo, sin que el desarrollador controle el orden del recorrido. El Visitor, en cambio, da control explícito: el propio desarrollador decide cuándo y cómo visitar cada nodo del árbol, lo cual es útil para tareas como evaluar expresiones o generar código.
+8. ¿Qué información representa un árbol sintáctico?
+Muestra cómo se aplicaron las reglas de la gramática sobre la entrada: cada nodo interno es una regla sintáctica que se disparó, y cada hoja es un token concreto que el lexer identificó. En conjunto, refleja la estructura jerárquica que tiene el texto según el lenguaje definido.
 
-**10. ¿Cómo podría utilizarse ANTLR para construir un lenguaje de dominio específico?**
-Definiendo una gramática propia con las palabras clave, operadores y estructuras particulares del dominio (por ejemplo, comandos de un sistema de ventas), y usando ANTLR para generar el lexer y el parser que reconozcan ese lenguaje, sobre los cuales luego se implementa la lógica de interpretación o ejecución mediante Listener o Visitor.
+9. ¿Cuál es la diferencia entre Listener y Visitor?
+Con el Listener, es ANTLR quien recorre el árbol automáticamente y va avisando (mediante enterX/exitX) cada vez que entra o sale de un nodo, sin que el programador decida el orden. Con el Visitor, es el propio código el que controla explícitamente el recorrido, llamando a visit sobre los hijos que le interesan, lo que da más flexibilidad para, por ejemplo, calcular y devolver un valor a partir del árbol.
+
+10. ¿Cómo podría utilizarse ANTLR para construir un lenguaje de dominio específico?
+Se define una gramática que capture el vocabulario y la estructura propios del dominio en cuestión (como los comandos mostrar, cargar y graficar de este ejercicio), se genera el lexer y el parser a partir de ella, y luego se conecta un Listener o un Visitor que traduzca el árbol reconocido en acciones reales, como ejecutar una consulta o disparar un proceso
 
 ## Referencias
 
