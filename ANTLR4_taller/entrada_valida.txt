@@ -1,5 +1,0 @@
-mostrar ventas
-mostrar clientes
-cargar datos
-cargar clientes
-graficar ventas

@@ -1,7 +1,0 @@
-# Conclusiones
-
-- El lexer y el parser cumplen responsabilidades distintas y complementarias: el lexer transforma caracteres en tokens, mientras que el parser transforma tokens en un árbol sintáctico. Separar estas dos etapas simplifica el diseño del reconocedor, ya que cada una resuelve un problema más simple que si se abordara todo en un solo paso.
-- ANTLR permite describir un lenguaje de forma declarativa (a través de la gramática `.g4`) en lugar de programar manualmente un autómata o un analizador descendente recursivo, lo que reduce enormemente el esfuerzo de implementación y el riesgo de errores.
-- La regla `programa : instruccion+ EOF ;` fue clave para poder procesar archivos con varias instrucciones y para garantizar, mediante `EOF`, que toda la entrada se consumiera correctamente y no se aceptaran entradas parciales o mal formadas al final del archivo.
-- Los casos inválidos (`ventas mostrar`, `graficar`, `eliminar ventas`) confirman que el parser rechaza correctamente entradas que no siguen el orden `PALABRA_RESERVADA ID`, entradas incompletas (falta el `ID`) o entradas con palabras que no pertenecen al vocabulario definido por el lexer.
-- Este ejercicio, aunque simple, ilustra el mismo patrón que usan los compiladores e intérpretes reales en sus primeras fases (análisis léxico y análisis sintáctico), y sienta las bases para incorporar después análisis semántico y generación/interpretación mediante Listener o Visitor.
