@@ -4,26 +4,6 @@
 Se construyó un lenguaje simple con ANTLR 4 capaz de reconocer instrucciones del tipo:
 `mostrar ventas`, `cargar clientes`, `graficar ingresos`.
 
-## Estructura del repositorio
-
-```
-ANTLR_Actividad/
-├── Instruccion.g4          # Gramática (lexer + parser combinados)
-├── tests/
-│   ├── pruebas_validas.txt # 5 instrucciones válidas
-│   ├── error1.txt          # Caso inválido: orden incorrecto
-│   ├── error2.txt          # Caso inválido: instrucción incompleta
-│   └── error3.txt          # Caso inválido: palabra clave no definida
-├── evidencia/
-│   ├── tokens.png
-│   ├── arbol_texto.png
-│   ├── arbol_grafico.png
-│   ├── error1.png
-│   ├── error2.png
-│   └── error3.png
-├── .gitignore
-└── README.md
-```
 
 ## Archivo de gramática
 
