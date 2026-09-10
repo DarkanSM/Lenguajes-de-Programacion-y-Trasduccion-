@@ -2,7 +2,7 @@
 
 DSL declarativo para flujos de análisis de datos (dominio: ventas/comercio),
 construido con ANTLR4 + Python. Corte 1: gramática, lexer/parser, sin ejecución
-todavía (eso es Corte 2 y 3).
+todavía.
 
 ## Requisitos
 
