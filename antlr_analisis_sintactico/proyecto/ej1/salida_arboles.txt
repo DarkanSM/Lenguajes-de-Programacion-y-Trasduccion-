@@ -1,0 +1,38 @@
+======================================================================
+ENTRADA: 3 + 4 * 5
+======================================================================
+
+[1] Parse tree - forma LISP (toStringTree):
+    (prog (e (e (t (f 3))) + (t (t (f 4)) * (f 5))) <EOF>)
+
+[2] Parse tree - ASCII:
+    prog
+    ├── e
+    │   ├── e
+    │   │   └── t
+    │   │       └── f
+    │   │           └── '3'
+    │   ├── '+'
+    │   └── t
+    │       ├── t
+    │       │   └── f
+    │       │       └── '4'
+    │       ├── '*'
+    │       └── f
+    │           └── '5'
+    └── '<EOF>'
+
+[3] AST - forma parentizada:
+    (+ 3 (* 4 5))
+
+[4] AST - ASCII:
+    +
+    ├── 3
+    └── *
+        ├── 4
+        └── 5
+
+[5] Recorrido post-orden con Listener (notación postfija):
+    3 4 5 * +
+
+[6] Evaluación con Visitor: 23
