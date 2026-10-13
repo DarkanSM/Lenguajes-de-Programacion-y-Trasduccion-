@@ -1,0 +1,57 @@
+
+========================================================================
+A1) e : e '+' e | e '*' e | NUM      ('+' primero)
+========================================================================
+  2 + 3 * 4   -> (prog (e (e (e 2) + (e 3)) * (e 4)) <EOF>)
+               [sin ambigüedad detectada] 
+  2 * 3 + 4   -> (prog (e (e 2) * (e (e 3) + (e 4))) <EOF>)
+               [sin ambigüedad detectada] 
+  2 + 3 + 4   -> (prog (e (e (e 2) + (e 3)) + (e 4)) <EOF>)
+               [sin ambigüedad detectada] 
+  2 * 3 * 4   -> (prog (e (e (e 2) * (e 3)) * (e 4)) <EOF>)
+               [sin ambigüedad detectada] 
+
+========================================================================
+A2) e : e '*' e | e '+' e | NUM      ('*' primero)
+========================================================================
+  2 + 3 * 4   -> (prog (e (e 2) + (e (e 3) * (e 4))) <EOF>)
+               [sin ambigüedad detectada] 
+  2 * 3 + 4   -> (prog (e (e (e 2) * (e 3)) + (e 4)) <EOF>)
+               [sin ambigüedad detectada] 
+  2 + 3 + 4   -> (prog (e (e (e 2) + (e 3)) + (e 4)) <EOF>)
+               [sin ambigüedad detectada] 
+  2 * 3 * 4   -> (prog (e (e (e 2) * (e 3)) * (e 4)) <EOF>)
+               [sin ambigüedad detectada] 
+
+========================================================================
+B ) e : NUM op e | e op NUM | NUM    (ambigüedad explícita)
+========================================================================
+  2 + 3 * 4   -> (prog (e 2 (op +) (e 3 (op *) (e 4))) <EOF>)
+               [AMBIGUA] [('e', 0, 5, None, True), ('e', 2, 5, None, True)]
+  2 * 3 + 4   -> (prog (e 2 (op *) (e 3 (op +) (e 4))) <EOF>)
+               [AMBIGUA] [('e', 0, 5, None, True), ('e', 2, 5, None, True)]
+  2 + 3 + 4   -> (prog (e 2 (op +) (e 3 (op +) (e 4))) <EOF>)
+               [AMBIGUA] [('e', 0, 5, None, True), ('e', 2, 5, None, True)]
+  2 * 3 * 4   -> (prog (e 2 (op *) (e 3 (op *) (e 4))) <EOF>)
+               [AMBIGUA] [('e', 0, 5, None, True), ('e', 2, 5, None, True)]
+
+========================================================================
+C) Conteo independiente de árboles de derivación
+========================================================================
+  entrada                                        operadores  árboles
+  num + num                                               1        1
+  num + num * num                                         2        2
+  num + num * num + num                                   3        5
+  num + num * num + num * num                             4       14
+  num + num * num + num * num + num                       5       42
+  num + num * num + num * num + num * num                 6      132
+  num + num * num + num * num + num * num + num           7      429
+
+  Secuencia 1, 2, 5, 14, 42, 132, 429 = números de Catalán -> crece sin límite.
+  Con 2 o más operadores hay >1 árbol ⇒ la gramática ES ambigua.
+
+========================================================================
+Árboles de derivación de  2 + 3 * 4  según la gramática
+========================================================================
+   (2 + (3 * 4))
+   ((2 + 3) * 4)
